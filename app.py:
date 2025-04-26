@@ -1,0 +1,40 @@
+from flask import Flask, request, jsonify
+import requests
+
+app = Flask(__name__)
+
+# Replace with your RapidAPI key
+RAPIDAPI_KEY = "your-api-key-here"
+
+@app.route('/api/download', methods=['POST'])
+def download_video():
+    data = request.json
+    url = data.get('url')
+    
+    if not url:
+        return jsonify({"error": "No URL provided"}), 400
+
+    try:
+        response = requests.get(
+            "https://instagram-downloader-download-instagram-videos-stories.p.rapidapi.com/index",
+            headers={
+                "X-RapidAPI-Key": RAPIDAPI_KEY,
+                "X-RapidAPI-Host": "instagram-downloader-download-instagram-videos-stories.p.rapidapi.com"
+            },
+            params={"url": url}
+        )
+        
+        result = response.json()
+        if 'error' in result:
+            return jsonify({"error": result['error']}), 400
+            
+        return jsonify({
+            "videoUrl": result.get('media'),
+            "thumbnail": result.get('thumbnail')
+        })
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+if __name__ == '__main__':
+    app.run(debug=True)
